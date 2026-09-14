@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .font-editorial-heading {
+    font-feature-settings: "liga" 1, "dlig" 1;
+    letter-spacing: -0.015em;
+  }
+  .serif-italic-accent {
+    font-style: italic;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+  .gold-accent-line {
+    background: linear-gradient(90deg, #B89343 0%, rgba(184, 147, 67, 0.2) 100%);
+  }
+  .hero-mask {
+    box-shadow: 0 25px 50px -12px rgba(35, 32, 29, 0.25);
+  }
+  .glass-nav {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
