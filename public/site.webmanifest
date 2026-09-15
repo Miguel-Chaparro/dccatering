@@ -1,0 +1,20 @@
+{
+  "name": "Diego Chaparro Catering | El Arte de Cocinar",
+  "short_name": "DC Catering",
+  "description": "Catering de autor, alta cocina, chef a domicilio y eventos exclusivos en Bogotá y la Sabana.",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "150x150",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#23201D",
+  "background_color": "#FAF7F2",
+  "display": "standalone"
+}
