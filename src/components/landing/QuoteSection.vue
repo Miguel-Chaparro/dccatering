@@ -3,6 +3,8 @@ import { ref, reactive } from 'vue'
 import { BRAND } from '@/constants/cateringData'
 import type { QuoteFormState } from '@/types/catering'
 
+const API_URL = 'https://billing.dommatos.com/api/public/cotizaciones'
+
 const initialForm: QuoteFormState = {
   nombre: '',
   empresa: '',
@@ -17,23 +19,68 @@ const initialForm: QuoteFormState = {
 const form = reactive<QuoteFormState>({ ...initialForm })
 const isSubmitted = ref(false)
 const isSubmitting = ref(false)
+const submitError = ref('')
 
 const handleSubmit = async () => {
   isSubmitting.value = true
+  submitError.value = ''
   
-  // Simular envío o integración con API/Azure Function
-  await new Promise((resolve) => setTimeout(resolve, 800))
-  
-  isSubmitting.value = false
-  isSubmitted.value = true
-  
-  // Reset form
-  Object.assign(form, initialForm)
+  try {
+    const cleanPhone = (form.telefono || '').replace(/[^\d+]/g, '')
+    const expiry = form.fecha ? form.fecha : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    
+    const notasFormateadas = [
+      `[SOLICITUD DE PROPUESTA GASTRONÓMICA - CATERING]`,
+      `🏢 Empresa/Organización: ${form.empresa || 'Particular'}`,
+      `🥂 Tipo de Evento: ${form.tipo_evento}`,
+      `👥 Invitados estimados: ${form.invitados || 'Por definir'}`,
+      `📅 Fecha estimada: ${form.fecha}`,
+      `📝 Requerimientos y detalles: ${form.detalles || 'Sin observaciones'}`
+    ].join('\n')
 
-  // Auto-ocultar mensaje después de 6 segundos
-  setTimeout(() => {
-    isSubmitted.value = false
-  }, 6000)
+    const payload = {
+      prospecto_nombre: form.nombre.trim(),
+      prospecto_email: form.email.trim().toLowerCase(),
+      prospecto_telefono: cleanPhone || '573000000000',
+      fecha_vencimiento: expiry,
+      notas_cliente: notasFormateadas,
+      indicaciones_entrega: `Lugar / Evento: ${form.empresa || 'Particular'}`,
+      metodo_pago: 'Propuesta gastronómica a convenir',
+      empresa_host: 'dccatering.com',
+      detalles: [
+        {
+          producto_id: 1,
+          cantidad: form.invitados ? Math.max(1, form.invitados) : 1,
+          precio_unitario_cotizado: 0
+        }
+      ]
+    }
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-empresa-host': 'dccatering.com'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    const data = await response.json()
+    if (response.ok && data.success) {
+      isSubmitted.value = true
+      Object.assign(form, initialForm)
+      setTimeout(() => {
+        isSubmitted.value = false
+      }, 7000)
+    } else {
+      submitError.value = data.message || 'No fue posible registrar la solicitud. Por favor intenta por WhatsApp.'
+    }
+  } catch (err: any) {
+    console.error('Error al enviar cotización de catering:', err)
+    submitError.value = 'Error de conexión. Puedes contactarnos directamente por WhatsApp.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -244,6 +291,12 @@ const handleSubmit = async () => {
               class="mt-4 p-3 bg-olive-700 text-white text-xs text-center rounded-sm font-medium"
             >
               ¡Gracias por contactarnos! El Chef {{ BRAND.chef }} y su equipo responderán tu solicitud a la brevedad.
+            </div>
+            <div
+              v-if="submitError"
+              class="mt-4 p-3 bg-burgundy-900/90 border border-burgundy-600 text-white text-xs text-center rounded-sm font-medium"
+            >
+              {{ submitError }}
             </div>
           </transition>
         </div>
